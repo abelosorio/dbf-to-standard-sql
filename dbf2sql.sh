@@ -16,7 +16,8 @@ dbf_dump --info --SQL $file | \
   # Add "" to table name for names that start with numbers.
   sed 's/create table \([^[:space:]]\+\)/CREATE TABLE "\1"/g' | \
   # Replace invalid SQL data types
-  sed 's/date([0-9]\+)/date/g'
+  sed 's/date([0-9]\+)/date/g' | \
+  sed 's/boolean(1)/boolean/g'
 
 echo ';'
 
