@@ -21,11 +21,13 @@ dbf_dump --info --SQL $file | \
 echo ';'
 
 ## Generate the INSERTs
-dbf_dump --info $file | \
+insert_sentence=$( dbf_dump --info $file | \
   # Filter for columns detail
   grep '^[0-9]\+\.' | \
   # Generate INSERT statements
-  sed -ne 's/^\([^[:space:]]\+\)[[:space:]]\+\([^[:space:]]\+\)[[:space:]]\+\([^[:space:]]\+\)[[:space:]]\+\([^[:space:]]\+\)[[:space:]]\+\([^[:space:]]\+\)$/\2/p' | xargs | sed -ne 's/[[:space:]]/,/g;s/\(.*\)/INSERT INTO "'$file_name'"(\1) VALUES /p'
+  sed -ne 's/^\([^[:space:]]\+\)[[:space:]]\+\([^[:space:]]\+\)[[:space:]]\+\([^[:space:]]\+\)[[:space:]]\+\([^[:space:]]\+\)[[:space:]]\+\([^[:space:]]\+\)$/\2/p' | \
+  xargs | \
+  sed -ne 's/[[:space:]]/,/g;s/\(.*\)/INSERT INTO "'$file_name'"(\1) VALUES /p' )
 
 ## Generate the VALUEs
 dbf_dump --undef NULL --fs '@@SEP@@' $file | \
@@ -34,5 +36,4 @@ dbf_dump --undef NULL --fs '@@SEP@@' $file | \
   sed "s/'/''/g" | \
   sed "s/@@SEP@@/', '/g;s/^/@@BEGIN@@('/g;s/$/')@@END@@/g;" | \
   sed "s/'NULL'/NULL/g" | \
-  sed ':a;N;$!ba;s/\n/ /g' | \
-  sed 's/@@END@@\s*@@BEGIN@@/, /g;s/@@BEGIN@@//g;s/@@END@@/;/g'
+  sed "s/@@BEGIN@@/$insert_sentence/g;s/@@END@@/;/g"
